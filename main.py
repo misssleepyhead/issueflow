@@ -5,7 +5,7 @@ app = FastAPI(title="IssueFlow API")
 
 # Implement GET /health
 @app.get("/health")
-def get_health():
+def health_check():
     return {"status": "ok"}
 
 
