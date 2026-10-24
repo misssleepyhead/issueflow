@@ -21,7 +21,7 @@ def test_get_issues():
     # 3. Assert response body == {"issues": issues}
     returned_json = response.json()["issues"]
     assert len(returned_json) == 3
-    assert [issue[id] for issue in returned_json] == [101, 102, 103]
+    assert [issue["id"] for issue in returned_json] == [101, 102, 103]
 
 
 def test_get_issue_success():
