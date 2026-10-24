@@ -1,7 +1,17 @@
 from fastapi.testclient import TestClient
 from main import app
+import copy
+import pytest
+import main
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_issues():
+    original = copy.deepcopy(main.issues)
+    yield
+    main.issues[:] = original
 
 
 def test_health_check():
@@ -51,3 +61,38 @@ def test_get_issue_invalid_id():
     body = response.json()
 
     assert body["detail"][0]["loc"] == ["path", "issue_id"]
+
+
+def test_create_issue_success():
+    response = client.post("/issues", json={"title": "Battery issue", "status": "open"})
+
+    assert response.status_code == 201
+
+    body = response.json()
+    assert body["title"] == "Battery issue"
+    assert body["status"] == "open"
+    assert body["id"] == 104
+
+
+def test_create_issue_default_status():
+    response = client.post("/issues", json={"title": "Battery issue"})
+    assert response.status_code == 201
+
+    body = response.json()
+    assert body["title"] == "Battery issue"
+
+
+def test_create_issue_missing_title():
+    pass
+
+
+def test_create_issue_empty_title():
+    pass
+
+
+def test_create_issue_invalid_title():
+    pass
+
+
+def test_create_issue_data_persistence():
+    pass
