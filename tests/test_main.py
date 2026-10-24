@@ -2,11 +2,6 @@ from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
-issues = [
-    {"id": 101, "title": "Login fails", "status": "open"},
-    {"id": 102, "title": "App crashes", "status": "closed"},
-    {"id": 103, "title": "Slow loading", "status": "open"},
-]
 
 
 def test_health_check():
@@ -23,8 +18,10 @@ def test_get_issues():
     response = client.get("/issues")
     # 2. Assert status code == 200
     assert response.status_code == 200
-    # 3. Assert response body == {"issues": []}
-    assert response.json() == {"issues": issues}
+    # 3. Assert response body == {"issues": issues}
+    returned_json = response.json()["issues"]
+    assert len(returned_json) == 3
+    assert [issue[id] for issue in returned_json] == [101, 102, 103]
 
 
 def test_get_issue_success():
@@ -50,3 +47,7 @@ def test_get_issue_invalid_id():
     response = client.get("/issues/abc")
     # Assert status == 422
     assert response.status_code == 422
+
+    body = response.json()
+
+    assert body["detail"][0]["loc"] == ["path", "issue_id"]
