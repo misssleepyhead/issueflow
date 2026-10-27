@@ -130,7 +130,7 @@ def test_create_issue_data_persistence():
     body = response.json()
     issue_id = body["id"]
 
-    response = client.get("/issues/{issue_id}")
+    response = client.get(f"/issues/{issue_id}")
     assert response.status_code == 200
 
     assert response.json() == {"id": 104, "title": "Battery issue", "status": "open"}
