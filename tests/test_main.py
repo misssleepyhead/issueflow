@@ -80,7 +80,7 @@ def test_create_issue_default_status():
 
     # check total issue list
     issues_total = client.get("/issues")
-
+    assert issues_total.status_code == 200
     assert len(issues_total.json()["issues"]) == 4
 
     body = response.json()
@@ -128,9 +128,9 @@ def test_create_issue_data_persistence():
     response = client.post("/issues", json={"title": "Battery issue"})
     assert response.status_code == 201
     body = response.json()
-    assert body["id"] == 104
+    issue_id = body["id"]
 
-    response = client.get("/issues/104")
+    response = client.get("/issues/{issue_id}")
     assert response.status_code == 200
 
     assert response.json() == {"id": 104, "title": "Battery issue", "status": "open"}
