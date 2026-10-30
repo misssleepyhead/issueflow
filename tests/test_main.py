@@ -49,7 +49,7 @@ def test_get_issue_not_found():
     # Assert status == 404
     assert response.status_code == 404
     # Assert error response
-    assert response.json() == {"detail": "issue not found"}
+    assert response.json() == {"detail": "Issue not found."}
 
 
 def test_get_issue_invalid_id():
