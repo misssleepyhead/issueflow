@@ -1,6 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Literal
+from fastapi import Depends
+from sqlmodel import Session, select
+from database import get_session
+from models import Issue
 
 app = FastAPI(title="IssueFlow API")
 
@@ -24,35 +28,39 @@ def health_check():
 
 # Implement GET /issues
 @app.get("/issues")
-def get_issues():
-    return {"issues": issues}
+def get_issues(session: Session = Depends(get_session)):
+    # Create a SELECT statement for all Issues
+    statement = select(Issue)
+    # Execute the statement
+    results = session.exec(statement)
+    issues_list = results.all()
+    return {"issues": issues_list}
 
 
 @app.get("/issues/{issue_id}")
-def get_issue(issue_id: int):
-    # Search the issues list for the requested ID.
-    for issue in issues:
-        if issue["id"] == issue_id:
-            # If found, return that issue dictionary.
-            return issue
-    # If not found, raise HTTPException with status 404.
-    raise HTTPException(status_code=404, detail="issue not found")
+def get_issue(issue_id: int, session: Session = Depends(get_session)):
+    # 1: Retrieve the Issue using session.get()
+    issue = session.get(Issue, issue_id)
+
+    # 2: If the Issue doesn't exist,
+    # raise HTTPException(404)
+    if issue is None:
+        raise HTTPException(status_code=404, detail="Issue not found.")
+
+    # 3: Return the Issue
+    return issue
 
 
 @app.post("/issues", status_code=201)
-def create_issue(issue: IssueCreate):
-    #  1: Generate a unique Issue ID
-    next_id = max((record["id"] for record in issues), default=100) + 1
+def create_issue(issue: IssueCreate, session: Session = Depends(get_session)):
 
-    # 2: Convert the Pydantic model
+    # 1: Convert the Pydantic model
     # into a Python dictionary
-    new_issue = issue.model_dump()
+    new_issue = Issue(title=issue.title, status=issue.status)
 
-    # 3: Add the generated ID
-    new_issue["id"] = next_id
+    # 2: Add the object to the Session
+    session.add(new_issue)
+    session.commit()
+    session.refresh(new_issue)
 
-    # 4: Save the new Issue in the list
-    issues.append(new_issue)
-
-    # 5: Return the created Issue
     return new_issue
