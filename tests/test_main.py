@@ -1,17 +1,52 @@
 from fastapi.testclient import TestClient
 from main import app
-import copy
-import pytest
+from database import get_session
 import main
 
-client = TestClient(app)
+
+import pytest
+
+from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel.pool import StaticPool
+
+from models import Issue
 
 
-@pytest.fixture(autouse=True)
-def reset_issues():
-    original = copy.deepcopy(main.issues)
-    yield
-    main.issues[:] = original
+# use SQLite in-memory mode
+@pytest.fixture(name="session")
+def session():
+    test_engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    try:
+        # Create the database tables
+        SQLModel.metadata.create_all(test_engine)
+
+        with Session(test_engine) as session:
+            yield session
+    finally:
+        # 4: Dispose of test_engine after the Session closes
+        test_engine.dispose()
+
+
+# client fixture
+@pytest.fixture(name="client")
+def client(session: Session):
+    # TODO 1:
+    # Create get_session_override()
+    # that yields the test session
+    def get_session_override():
+        return session
+
+    # Set app.dependency_overrides[get_session]
+    app.dependency_overrides[get_session] = get_session_override
+
+    # Create and yield TestClient(app)
+    client = TestClient(app)
+    yield client
+
+    # Clear dependency overrides after testing
+    app.dependency_overrides.clear()
 
 
 def test_health_check():
