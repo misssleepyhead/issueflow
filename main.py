@@ -1,7 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
 from typing import Literal
-from fastapi import Depends
 from sqlmodel import Session, select
 from database import get_session
 from models import Issue
