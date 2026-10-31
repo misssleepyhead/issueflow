@@ -8,12 +8,6 @@ from models import Issue
 
 app = FastAPI(title="IssueFlow API")
 
-issues = [
-    {"id": 101, "title": "Login fails", "status": "open"},
-    {"id": 102, "title": "App crashes", "status": "closed"},
-    {"id": 103, "title": "Slow loading", "status": "open"},
-]
-
 
 class IssueCreate(BaseModel):
     title: str = Field(min_length=1)
