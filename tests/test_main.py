@@ -152,7 +152,7 @@ def test_create_issue_missing_title(client: TestClient, session: Session):
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "title"]
 
-    # check that the total issue list should not change
+    # Verify that no record was inserted into the database
     statement = select(Issue)
     results = session.exec(statement)
     issues_list = results.all()
@@ -165,7 +165,7 @@ def test_create_issue_empty_title(client: TestClient, session: Session):
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "title"]
 
-    # check that the total issue list should not change
+    # Verify that no record was inserted into the database
     statement = select(Issue)
     results = session.exec(statement)
     issues_list = results.all()
@@ -179,7 +179,7 @@ def test_create_issue_invalid_status(client: TestClient, session: Session):
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "status"]
 
-    # check that the total issue list should not change
+    # Verify that no record was inserted into the database
     statement = select(Issue)
     results = session.exec(statement)
     issues_list = results.all()
@@ -195,4 +195,8 @@ def test_create_issue_data_persistence(client: TestClient):
     response = client.get(f"/issues/{issue_id}")
     assert response.status_code == 200
 
-    assert response.json() == {"id": 104, "title": "Battery issue", "status": "open"}
+    assert response.json() == {
+        "id": issue_id,
+        "title": "Battery issue",
+        "status": "open",
+    }
