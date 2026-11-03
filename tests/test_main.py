@@ -239,3 +239,74 @@ def test_update_issue_invalid_status(
     session.refresh(issue)
     assert issue.title == "Login fails"
     assert issue.status == "open"
+
+
+def test_update_issue_empty_title(
+    client: TestClient, session: Session, existing_issue: Issue
+):
+    response = client.patch("/issues/101", json={"title": ""})
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "status"]
+
+    # Refresh and verify Issue #101 is unchanged
+    issue = session.get(Issue, 101)
+    session.refresh(issue)
+    assert issue.title == "Login fails"
+    assert issue.status == "open"
+
+
+def test_update_issue_null_title(
+    client: TestClient, session: Session, existing_issue: Issue
+):
+    response = client.patch("/issues/101", json={"title": None})
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Fields cannot be null"}
+    issue = session.get(Issue, 101)
+    session.refresh(issue)
+    assert issue.title == "Login fails"
+    assert issue.status == "open"
+
+
+def test_update_issue_null_status(
+    client: TestClient, session: Session, existing_issue: Issue
+):
+    response = client.patch("/issues/101", json={"status": None})
+    assert response.status_code == 422
+    assert response.json() == {"detail": "Fields cannot be null"}
+    issue = session.get(Issue, 101)
+    session.refresh(issue)
+    assert issue.title == "Login fails"
+    assert issue.status == "open"
+
+
+def test_update_issue_empty_body(client: TestClient, existing_issue: Issue):
+    response = client.patch("/issues/101", json={})
+    assert response.status_code == 200
+    issue = session.get(Issue, 101)
+    session.refresh(issue)
+    assert issue.title == "Login fails"
+    assert issue.status == "open"
+
+
+def test_update_issue_both_fields(client: TestClient, existing_issue: Issue):
+    # PATCH /issues/101
+    # Update title and status
+    # Assert 200 and both fields updated
+
+    # Send GET /issues/101
+    # Verify the changes are retrievable
+    pass
+
+
+def test_update_issue_invalid_id(client: TestClient):
+    # PATCH /issues/abc with {"status": "closed"}
+    # Assert 422
+    # Assert error location ["path", "issue_id"]
+    pass
+
+
+def test_update_issue_invalid_body_and_missing_id(client: TestClient):
+    # PATCH /issues/999 with {"status": "pending"}
+    # Assert 422, not 404
+    # Assert error location ["body", "status"]
+    pass
