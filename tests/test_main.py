@@ -211,3 +211,19 @@ def test_update_issue_status(client: TestClient, session: Session):
         "title": "Login fails",
         "status": "closed",
     }
+
+
+def test_update_issue_title(client: TestClient, session: Session):
+    issue_1 = Issue(id=101, title="Login fails", status="open")
+    session.add(issue_1)
+    session.commit()
+
+    response = client.patch(
+        "/issues/101", json={"title": "Login fails after password reset"}
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": 101,
+        "title": "Login fails after password reset",
+        "status": "open",
+    }
