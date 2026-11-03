@@ -227,3 +227,10 @@ def test_update_issue_title(client: TestClient, session: Session):
         "title": "Login fails after password reset",
         "status": "open",
     }
+
+
+def test_update_issue_not_found(client: TestClient):
+    response = client.patch("/issues/999", json={"status": "closed"})
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Issue not found"}
