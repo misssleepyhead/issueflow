@@ -234,3 +234,23 @@ def test_update_issue_not_found(client: TestClient):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Issue not found"}
+
+
+def test_update_issue_invalid_status(client: TestClient, session: Session):
+    issue_1 = Issue(id=101, title="Login fails", status="open")
+    session.add(issue_1)
+    session.commit()
+
+    response = client.patch("/issues/101", json={"status": "pending"})
+
+    assert response.status_code == 422
+    # Assert error location ["body", "status"]
+    assert response.json()["detail"][0]["loc"] == ["body", "status"]
+
+    # check the issue still remain unchanged
+    issue = session.get(Issue, 101)
+    assert issue.title == "Login fails"
+    assert issue.status == "open"
+
+
+
