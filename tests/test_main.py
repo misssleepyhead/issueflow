@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 from main import app
 from database import get_session
-import main
 import pytest
 from sqlmodel import Session, SQLModel, create_engine, select
 from sqlmodel.pool import StaticPool
@@ -36,12 +35,13 @@ def client(session: Session):
     # Set app.dependency_overrides[get_session], reference to the overrided function
     app.dependency_overrides[get_session] = get_session_override
 
-    # Create and yield TestClient(app)
-    client = TestClient(app)
-    yield client
-
-    # Clear dependency overrides after testing
-    app.dependency_overrides.clear()
+    try:
+        # Create and yield TestClient(app)
+        with TestClient(app) as test_client:
+            yield test_client
+    finally:
+        # Clear dependency overrides after testing
+        app.dependency_overrides.pop(get_session, None)
 
 
 def test_health_check(client: TestClient):
@@ -70,9 +70,6 @@ def test_get_issues(client: TestClient, session: Session):
 
     # Assert response.status_code == 200
     assert response.status_code == 200
-
-    # Extract the issues list from response.json()
-    returned_json = response.json()
 
     # Verify:
     # - Exactly one Issue is returned
