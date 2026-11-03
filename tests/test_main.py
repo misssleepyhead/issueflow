@@ -44,6 +44,16 @@ def client(session: Session):
         app.dependency_overrides.pop(get_session, None)
 
 
+@pytest.fixture
+def existing_issue(session: Session):
+    """Fixture for creating an issue into database for testing"""
+    issue = Issue(id=101, title="Login fails", status="open")
+    session.add(issue)
+    session.commit()
+    session.refresh(issue)
+    return issue
+
+
 def test_health_check(client: TestClient):
     # 1. Send a GET request to /health
     response = client.get("/health")
@@ -53,18 +63,7 @@ def test_health_check(client: TestClient):
     assert response.json() == {"status": "ok"}
 
 
-def test_get_issues(client: TestClient, session: Session):
-    # Create an Issue object:
-    # id = 101
-    # title = "Login fails"
-    # status = "open"
-    issue_1 = Issue(id=101, title="Login fails", status="open")
-
-    # Add the Issue to the Session
-    # and commit the transaction
-    session.add(issue_1)
-    session.commit()
-
+def test_get_issues(client: TestClient, session: Session, existing_issue: Issue):
     # Send GET /issues using client
     response = client.get("/issues")
 
@@ -86,11 +85,7 @@ def test_get_issues(client: TestClient, session: Session):
     assert first_issue["status"] == "open"
 
 
-def test_get_issue_success(client: TestClient, session: Session):
-    issue_1 = Issue(id=101, title="Login fails", status="open")
-    session.add(issue_1)
-    session.commit()
-
+def test_get_issue_success(client: TestClient, session: Session, existing_issue: Issue):
     response = client.get("/issues/101")
 
     assert response.status_code == 200
@@ -99,7 +94,6 @@ def test_get_issue_success(client: TestClient, session: Session):
 
 
 def test_get_issue_not_found(client: TestClient):
-
     response = client.get("/issues/999")
     assert response.status_code == 404
 
@@ -157,7 +151,6 @@ def test_create_issue_missing_title(client: TestClient, session: Session):
 
 
 def test_create_issue_empty_title(client: TestClient, session: Session):
-
     response = client.post("/issues", json={"title": ""})
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "title"]
@@ -199,11 +192,9 @@ def test_create_issue_data_persistence(client: TestClient):
     }
 
 
-def test_update_issue_status(client: TestClient, session: Session):
-    issue_1 = Issue(id=101, title="Login fails", status="open")
-    session.add(issue_1)
-    session.commit()
-
+def test_update_issue_status(
+    client: TestClient, session: Session, existing_issue: Issue
+):
     response = client.patch("/issues/101", json={"status": "closed"})
     assert response.status_code == 200
     assert response.json() == {
@@ -213,11 +204,9 @@ def test_update_issue_status(client: TestClient, session: Session):
     }
 
 
-def test_update_issue_title(client: TestClient, session: Session):
-    issue_1 = Issue(id=101, title="Login fails", status="open")
-    session.add(issue_1)
-    session.commit()
-
+def test_update_issue_title(
+    client: TestClient, session: Session, existing_issue: Issue
+):
     response = client.patch(
         "/issues/101", json={"title": "Login fails after password reset"}
     )
@@ -236,11 +225,9 @@ def test_update_issue_not_found(client: TestClient):
     assert response.json() == {"detail": "Issue not found"}
 
 
-def test_update_issue_invalid_status(client: TestClient, session: Session):
-    issue_1 = Issue(id=101, title="Login fails", status="open")
-    session.add(issue_1)
-    session.commit()
-
+def test_update_issue_invalid_status(
+    client: TestClient, session: Session, existing_issue: Issue
+):
     response = client.patch("/issues/101", json={"status": "pending"})
 
     assert response.status_code == 422
@@ -249,8 +236,6 @@ def test_update_issue_invalid_status(client: TestClient, session: Session):
 
     # check the issue still remain unchanged
     issue = session.get(Issue, 101)
+    session.refresh(issue)
     assert issue.title == "Login fails"
     assert issue.status == "open"
-
-
-
