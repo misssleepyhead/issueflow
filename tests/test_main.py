@@ -197,3 +197,17 @@ def test_create_issue_data_persistence(client: TestClient):
         "title": "Battery issue",
         "status": "open",
     }
+
+
+def test_update_issue_status(client: TestClient, session: Session):
+    issue_1 = Issue(id=101, title="Login fails", status="open")
+    session.add(issue_1)
+    session.commit()
+
+    response = client.patch("/issues/101", json={"status": "closed"})
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": 101,
+        "title": "Login fails",
+        "status": "closed",
+    }
