@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import Literal
+from typing import Literal, Optional
 from sqlmodel import Session, select
 from database import get_session
 from models import Issue
@@ -57,3 +57,8 @@ def create_issue(issue: IssueCreate, session: Session = Depends(get_session)):
     session.refresh(new_issue)
 
     return new_issue
+
+
+class IssueUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1)
+    status: Literal["open", "closed"] | None = None
