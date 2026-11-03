@@ -13,6 +13,11 @@ class IssueCreate(BaseModel):
     status: Literal["open", "closed"] = Field(default="open")
 
 
+class IssueUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1)
+    status: Literal["open", "closed"] | None = None
+
+
 # Implement GET /health
 @app.get("/health")
 def health_check():
@@ -59,6 +64,24 @@ def create_issue(issue: IssueCreate, session: Session = Depends(get_session)):
     return new_issue
 
 
-class IssueUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1)
-    status: Literal["open", "closed"] | None = None
+@app.patch("/issues/{issue_id}")
+def update_issue(
+    issue_id: int, update: IssueUpdate, session: Session = Depends(get_session)
+):
+    # Find the existing Issue
+    db_issue = session.get(Issue, issue_id)
+    if db_issue is None:
+        raise HTTPException(status_code=404, detail="Issue not found")
+
+    # Extract only the fields provided by the client
+    update_part = update.model_dump(exclude_unset=True)
+    # Reject explicit None values
+    if any(value is None for value in update_part.values()):
+        raise HTTPException(status_code=422, detail="Fields cannot be null")
+
+    db_issue.sqlmodel_update(update_part)
+
+    session.add(db_issue)
+    session.commit()
+    session.refresh(db_issue)
+    return db_issue
