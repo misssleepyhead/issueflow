@@ -63,7 +63,7 @@ def test_health_check(client: TestClient):
     assert response.json() == {"status": "ok"}
 
 
-def test_get_issues(client: TestClient, session: Session, existing_issue: Issue):
+def test_get_issues(client: TestClient, existing_issue: Issue):
     # Send GET /issues using client
     response = client.get("/issues")
 
@@ -85,7 +85,7 @@ def test_get_issues(client: TestClient, session: Session, existing_issue: Issue)
     assert first_issue["status"] == "open"
 
 
-def test_get_issue_success(client: TestClient, session: Session, existing_issue: Issue):
+def test_get_issue_success(client: TestClient, existing_issue: Issue):
     response = client.get("/issues/101")
 
     assert response.status_code == 200
@@ -192,9 +192,7 @@ def test_create_issue_data_persistence(client: TestClient):
     }
 
 
-def test_update_issue_status(
-    client: TestClient, session: Session, existing_issue: Issue
-):
+def test_update_issue_status(client: TestClient, existing_issue: Issue):
     response = client.patch("/issues/101", json={"status": "closed"})
     assert response.status_code == 200
     assert response.json() == {
@@ -204,9 +202,7 @@ def test_update_issue_status(
     }
 
 
-def test_update_issue_title(
-    client: TestClient, session: Session, existing_issue: Issue
-):
+def test_update_issue_title(client: TestClient, existing_issue: Issue):
     response = client.patch(
         "/issues/101", json={"title": "Login fails after password reset"}
     )
@@ -246,7 +242,7 @@ def test_update_issue_empty_title(
 ):
     response = client.patch("/issues/101", json={"title": ""})
     assert response.status_code == 422
-    assert response.json()["detail"][0]["loc"] == ["body", "status"]
+    assert response.json()["detail"][0]["loc"] == ["body", "title"]
 
     # Refresh and verify Issue #101 is unchanged
     issue = session.get(Issue, 101)
@@ -282,31 +278,44 @@ def test_update_issue_null_status(
 def test_update_issue_empty_body(client: TestClient, existing_issue: Issue):
     response = client.patch("/issues/101", json={})
     assert response.status_code == 200
-    issue = session.get(Issue, 101)
-    session.refresh(issue)
-    assert issue.title == "Login fails"
-    assert issue.status == "open"
+    get_response = client.get("/issues/101")
+    assert get_response.status_code == 200
+
+    assert get_response.json() == {
+        "id": 101,
+        "title": "Login fails",
+        "status": "open",
+    }
 
 
 def test_update_issue_both_fields(client: TestClient, existing_issue: Issue):
     # PATCH /issues/101
     # Update title and status
-    # Assert 200 and both fields updated
+    response = client.patch(
+        "/issues/101",
+        json={"title": "Login fails after password reset", "status": "closed"},
+    )
+    assert response.status_code == 200
 
     # Send GET /issues/101
     # Verify the changes are retrievable
-    pass
+    get_response = client.get("/issues/101")
+    assert get_response.status_code == 200
+
+    assert get_response.json() == {
+        "id": 101,
+        "title": "Login fails after password reset",
+        "status": "closed",
+    }
 
 
 def test_update_issue_invalid_id(client: TestClient):
-    # PATCH /issues/abc with {"status": "closed"}
-    # Assert 422
-    # Assert error location ["path", "issue_id"]
-    pass
+    response = client.patch("issues/abc", json={"status": "closed"})
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["path", "issue_id"]
 
 
 def test_update_issue_invalid_body_and_missing_id(client: TestClient):
-    # PATCH /issues/999 with {"status": "pending"}
-    # Assert 422, not 404
-    # Assert error location ["body", "status"]
-    pass
+    response = client.patch("issues/999", json={"status": "pending"})
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["body", "status"]
