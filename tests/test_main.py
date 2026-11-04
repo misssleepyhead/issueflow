@@ -319,3 +319,72 @@ def test_update_issue_invalid_body_and_missing_id(client: TestClient):
     response = client.patch("issues/999", json={"status": "pending"})
     assert response.status_code == 422
     assert response.json()["detail"][0]["loc"] == ["body", "status"]
+
+
+def test_delete_issue_success(
+    client: TestClient, session: Session, existing_issue: Issue
+):
+    # DELETE /issues/101
+    response = client.delete("/issues/101")
+    assert response.status_code == 204
+    assert response.content == b""
+
+    db_issue = session.get(Issue, 101)
+    assert db_issue is None
+
+    response = client.get("/issues/101 ")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Issue not found"}
+
+
+def test_delete_issue_not_found(client: TestClient):
+    # DELETE /issues/999
+    response = client.delete("/issues/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Issue not found"}
+
+
+def test_delete_issue_invalid_id(client: TestClient):
+    # DELETE /issues/abc
+    response = client.delete("/issues/abc")
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["path", "issue_id"]
+
+
+def test_delete_issue_twice(client: TestClient, existing_issue: Issue):
+    # First DELETE /issues/101
+    # Assert 204
+    response = client.delete("/issues/101")
+    assert response.status_code == 204
+
+    # Second DELETE /issues/101
+    # Assert 404
+    response = client.delete("/issues/101")
+    assert response.status_code == 404
+
+
+def test_delete_only_target_issue(
+    client: TestClient, session: Session, existing_issue: Issue
+):
+    # Issue #101 already exists because of the fixture
+
+    # Create only Issue #102
+    issue_2 = Issue(id=102, title="Battery issue", status="open")
+    session.add(issue_2)
+    session.commit()
+
+    # Delete Issue #101
+    response = client.delete("/issues/101")
+    assert response.status_code == 204
+
+    # Verify Issue #101 was deleted
+    deleted_issue = session.get(Issue, 101)
+    assert deleted_issue is None
+
+    # Verify Issue #102 still exists
+    remaining_issue = session.get(Issue, 102)
+    assert remaining_issue is not None
+    session.refresh(remaining_issue)
+
+    assert remaining_issue.title == "Battery issue"
+    assert remaining_issue.status == "open"
