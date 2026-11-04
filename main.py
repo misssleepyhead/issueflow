@@ -1,11 +1,23 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel, Field
-from typing import Literal, Optional
+from typing import Literal
 from sqlmodel import Session, select
 from database import get_session
 from models import Issue
+from pathlib import Path
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(title="IssueFlow API")
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = BASE_DIR / "static"
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/")
+def homepage():
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 class IssueCreate(BaseModel):
