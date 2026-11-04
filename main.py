@@ -89,11 +89,9 @@ def update_issue(
 
 @app.delete("/issues/{issue_id}", status_code=204)
 def delete_issue(issue_id: int, session: Session = Depends(get_session)):
-    # TODO 1:
-    # Retrieve the Issue using its primary key
-    delete_id = session.get(Issue, issue_id)
-    if delete_id is None:
+    db_issue = session.get(Issue, issue_id)
+    if db_issue is None:
         raise HTTPException(status_code=404, detail="Issue not found")
 
-    session.delete(delete_id)
+    session.delete(db_issue)
     session.commit()
