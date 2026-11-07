@@ -16,3 +16,5 @@ htmlcov/
 
 # VS Code local settings
 .vscode/settings.json
+
+issueflow.db
