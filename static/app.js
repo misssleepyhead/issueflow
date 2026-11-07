@@ -32,15 +32,48 @@ async function loadIssues() {
         title_cell.textContent = issue.title;
         status_cell.textContent = issue.status;
 
-        // Append all three cells to the <tr>
+
+        const actionCell = document.createElement("td");
+
+        // TODO 2:
+        // Create a status button
+        const statusButton = document.createElement("button");
+        let newStatus;
+
+        if (issue.status == "open") {
+            statusButton.textContent = "Close";
+            newStatus = "closed";
+        } else {
+            statusButton.textContent = "Reopen";
+            newStatus = "open";
+        }
+
+        statusButton.addEventListener("click", async function () {
+            await changeIssueStatus(issue.id, newStatus);
+        });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+
+        deleteButton.addEventListener("click", async function () {
+            await deleteIssue(issue.id);
+        });
+
+        actionCell.appendChild(statusButton);
+        actionCell.appendChild(deleteButton);
+
         row.appendChild(id_cell);
         row.appendChild(title_cell);
         row.appendChild(status_cell);
 
         tbody.appendChild(row);
+        tbody.appendChild(actionCell);
+
+
+
     }
 
-}
+};
 
 loadIssues().catch(error => {
     console.error(error);
@@ -95,3 +128,56 @@ document.querySelector("#create-form").addEventListener(
 
     }
 );
+
+
+
+
+async function changeIssueStatus(issueId, newStatus) {
+    const url = `/issues/${issueId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+
+        await loadIssues();
+
+    } catch (error) {
+        console.error(error);
+        document.querySelector("#message").textContent = "Failed to update status";
+    }
+
+};
+
+
+
+async function deleteIssue(issueId) {
+    const url = `/issues/${issueId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: "DELETE",
+        });
+
+        if (!response.ok) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+        if (!response.status === 204) {
+            throw new Error(`Response status: ${response.status}`);
+        }
+
+
+        await loadIssues();
+
+    } catch (error) {
+        console.error(error);
+        document.querySelector("#message").textContent = "Failed to delete status";
+    }
+
+};
