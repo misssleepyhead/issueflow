@@ -38,25 +38,31 @@ async function loadIssues() {
         // TODO 2:
         // Create a status button
         const statusButton = document.createElement("button");
-        let newStatus;
+        const newStatus = issue.status === "open" ? "closed" : "open";
 
-        if (issue.status == "open") {
-            statusButton.textContent = "Close";
-            newStatus = "closed";
-        } else {
-            statusButton.textContent = "Reopen";
-            newStatus = "open";
-        }
+        statusButton.textContent =
+            issue.status === "open" ? "Close" : "Reopen";
 
         statusButton.addEventListener("click", async function () {
-            await changeIssueStatus(issue.id, newStatus);
+            try {
+                await changeIssueStatus(issue.id, newStatus);
+            } catch (error) {
+                console.error("Failed to update issue :", error);
+                document.querySelector("#message").text = "Failed to update issue";
+            }
         });
 
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
 
         deleteButton.addEventListener("click", async function () {
-            await deleteIssue(issue.id);
+            try {
+                await deleteIssue(issue.id);
+            } catch (error) {
+                console.error("Failed to delete issue:", error);
+                document.querySelector("#message").text = "Failed to delete issue";
+            }
+
         });
 
         actionCell.appendChild(statusButton);
@@ -65,9 +71,10 @@ async function loadIssues() {
         row.appendChild(id_cell);
         row.appendChild(title_cell);
         row.appendChild(status_cell);
+        row.appendChild(actionCell);
+
 
         tbody.appendChild(row);
-        tbody.appendChild(actionCell);
 
 
 
