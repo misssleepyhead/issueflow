@@ -48,7 +48,7 @@ async function loadIssues() {
                 await changeIssueStatus(issue.id, newStatus);
             } catch (error) {
                 console.error("Failed to update issue :", error);
-                document.querySelector("#message").text = "Failed to update issue";
+                document.querySelector("#message").textContent = "Failed to update issue";
             }
         });
 
@@ -60,7 +60,7 @@ async function loadIssues() {
                 await deleteIssue(issue.id);
             } catch (error) {
                 console.error("Failed to delete issue:", error);
-                document.querySelector("#message").text = "Failed to delete issue";
+                document.querySelector("#message").textContent = "Failed to delete issue";
             }
 
         });
@@ -136,55 +136,35 @@ document.querySelector("#create-form").addEventListener(
     }
 );
 
-
-
-
 async function changeIssueStatus(issueId, newStatus) {
     const url = `/issues/${issueId}`;
 
-    try {
-        const response = await fetch(url, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: newStatus })
-        });
+    const response = await fetch(url, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ status: newStatus })
+    });
 
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-
-        await loadIssues();
-
-    } catch (error) {
-        console.error(error);
-        document.querySelector("#message").textContent = "Failed to update status";
+    if (!response.ok) {
+        throw new Error(`Response status: ${response.status}`);
     }
 
-};
-
+    await loadIssues();
+}
 
 
 async function deleteIssue(issueId) {
     const url = `/issues/${issueId}`;
 
-    try {
-        const response = await fetch(url, {
-            method: "DELETE",
-        });
+    const response = await fetch(url, {
+        method: "DELETE"
+    });
 
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-        if (!response.status === 204) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-
-
-        await loadIssues();
-
-    } catch (error) {
-        console.error(error);
-        document.querySelector("#message").textContent = "Failed to delete status";
+    if (response.status !== 204) {
+        throw new Error(`Response status: ${response.status}`);
     }
 
-};
+    await loadIssues();
+}
