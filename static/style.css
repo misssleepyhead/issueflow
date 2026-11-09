@@ -1,0 +1,65 @@
+
+/* General page styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8fafc;
+    color: #1e293b;
+    margin: 0;
+    padding: 32px;
+}
+
+/* Main heading */
+h1 {
+    color: #1d4ed8;
+    margin-bottom: 24px;
+}
+
+/* Issue table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    max-width: 850px;
+    margin: 0 auto;
+    
+}
+
+/* Table cells */
+th, td {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px;
+    text-align: left;
+}
+
+/* Table headings */
+th {
+    background-color: #eff6ff;
+}
+
+tr:hover{
+    background-color: rgb(215, 235, 253);
+}
+
+input{
+    padding: 3px;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+}
+
+button{
+    margin:2pt;
+    padding: 8px 12px;
+    background-color:gainsboro;
+    border-radius: 5px;
+    border:1px solid #cccccc;
+    cursor: pointer;
+
+}
+button:hover{
+    background-color: lightblue;
+}
+
+form{
+    margin-bottom: 24px;
+}
+
