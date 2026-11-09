@@ -55,8 +55,9 @@ button{
     cursor: pointer;
 
 }
-button:hover{
-    background-color: lightblue;
+button:hover {
+    background-color: #2563eb;
+    color: white;
 }
 
 form{
