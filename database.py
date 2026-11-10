@@ -1,9 +1,9 @@
 from sqlmodel import SQLModel, create_engine, Session
 from models import Issue
+import os
 
-sqlite_file_name = "issueflow.db"
+sqlite_file_name = os.getenv("ISSUEFLOW_DB_PATH", "issueflow.db")
 sqlite_url = f"sqlite:///{sqlite_file_name}"
-
 engine = create_engine(sqlite_url, echo=True)
 
 
