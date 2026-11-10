@@ -37,10 +37,11 @@ async function loadIssues() {
 
         // Create a status button
         const statusButton = document.createElement("button");
-        const newStatus = issue.status === "Open" ? "Closed" : "Open";
+        const newStatus =
+            issue.status === "open" ? "closed" : "open";
 
         statusButton.textContent =
-            issue.status === "Open" ? "Closed" : "Open";
+            issue.status === "open" ? "Close" : "Reopen";
 
         statusButton.addEventListener("click", async function () {
             try {

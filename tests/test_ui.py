@@ -50,32 +50,26 @@ def test_issues_table_visible(page: Page):
 def test_issue_crud_workflow(page: Page, issue_title: str):
     page.goto(BASE_URL)
 
-    # Generate a unique title to avoid matching older records
-    title = f"E2E issue {uuid4().hex[:8]}"
-    page.get_by_placeholder("Enter issue title").fill("Login timeout")
+    page.get_by_placeholder("Enter issue title").fill(issue_title)
     page.get_by_role("button", name="Add Issue").click()
 
     # Locate the table row containing title
-    row = page.locator("#issues-body tr").filter(has_text="Login timeout")
+    row = page.locator("#issues-body tr").filter(has_text=issue_title)
     # Assert the row is visible
     expect(row).to_have_count(1)
     expect(row).to_be_visible()
-    # Assert its status is "open"
-    expect(row.get_by_role("cell", name="open")).to_be_visible()
 
-    # Click the "Close" button inside that row
+    status_cell = row.locator("td").nth(2)
+    expect(status_cell).to_have_text("open")
+
+    # Close
     row.get_by_role("button", name="Close").click()
-    # Assert the status becomes "closed"
-    expect(row.get_by_role("cell", name="Closed")).to_be_visible()
+    expect(status_cell).to_have_text("closed")
 
-    # Click the "Reopen" button inside that row
+    # Reopen
     row.get_by_role("button", name="Reopen").click()
-    # Assert the status becomes "open"
-    expect(row.get_by_role("columnheader", name="Status")).to_have_text("Open")
+    expect(status_cell).to_have_text("open")
 
-    # Click the "Delete" button inside that row
+    # Delete
     row.get_by_role("button", name="Delete").click()
-    # Assert the matching row no longer exists
-    expect(
-        page.locator("#issues-body tr").filter(has_text="Login timeout")
-    ).to_have_count(0)
+    expect(row).to_have_count(0)
