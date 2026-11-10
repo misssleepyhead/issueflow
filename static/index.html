@@ -9,30 +9,32 @@
 </head>
 
 <body>
-    <h1>IssueFlow</h1>
+    <main class="container">
+        <h1>IssueFlow</h1>
 
-    <h2>Create Issue</h2>
-    <form id="create-form">
-        <input id="issue-title" type="text" placeholder="Enter issue title" required>
-        <button type="submit">Add Issue</button>
-    </form>
+        <h2>Create Issue</h2>
+        <form id="create-form">
+            <input id="issue-title" type="text" placeholder="Enter issue title" required>
+            <button type="submit">Add Issue</button>
+        </form>
 
-    <p id="message"></p>
+        <p id="message"></p>
 
-    <h2>Issues</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="issues-body">
-            <!-- JavaScript inserts issue rows here -->
-        </tbody>
-    </table>
+        <h2>Issues</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="issues-body">
+                <!-- JavaScript inserts issue rows here -->
+            </tbody>
+        </table>
+    </main>
 </body>
 
 </html>
