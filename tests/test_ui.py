@@ -86,8 +86,8 @@ def test_empty_title_validation(page: Page):
 
     # Verify that the input is invalid because
     # the required field is empty.
-    is_required = title_input.evaluate("(element) => element.required")
-    assert is_required is True
+    value_missing = title_input.evaluate("(element) => element.validity.valueMissing")
+    assert value_missing is True
 
     # Verify that "Issue created successfully"
     # is NOT displayed
